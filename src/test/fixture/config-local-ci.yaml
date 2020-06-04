@@ -1,0 +1,56 @@
+# Copyright (c) 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+organizations:
+  - name: org1.example.com
+    mspId: Org1MSP
+    adminMsp: ./data/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+    hlfTlsCertFile: ./data/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/tls/ca.crt
+    hlfClientUser: Admin
+    hlfClientKeyFile: ./data/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/tls/client.key
+    hlfClientCertFile: ./data/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/tls/client.crt
+    hlfClientAuth: false
+    peers:
+      - name: peer0
+        url: grpcs://peer0.org1.example.com:7051
+    orderers:
+  - name: org2.example.com
+    mspId: Org2MSP
+    adminMsp: ./data/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+    hlfTlsCertFile: ./data/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/tls/ca.crt
+    hlfClientUser: Admin
+    hlfClientKeyFile: ./data/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/tls/client.key
+    hlfClientCertFile: ./data/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/tls/client.crt
+    hlfClientAuth: false
+    peers:
+      - name: peer0
+        url: grpcs://peer0.org2.example.com:7056
+    orderers:
+  - name: example.com
+    mspId: OrdererMSP
+    adminMsp: ./data/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp
+    hlfTlsCertFile: ./data/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/tls/ca.crt
+    hlfClientUser: Admin
+    hlfClientKeyFile: ./data/crypto-config/peerOrganizations/example.com/users/Admin@example.com/tls/client.key
+    hlfClientCertFile: ./data/crypto-config/peerOrganizations/example.com/users/Admin@example.com/tls/client.crt
+    hlfClientAuth: false
+    peers:
+    orderers:
+      - name: orderer
+        url: grpcs://orderer.example.com:7050
+channel:
+  name: mainchannel
+  channelTxFile: ./data/mainchannel.tx
+  endorsementPolicy: ./data/endorsement-policy.yaml
+  chaincode:
+    name: daml_on_fabric
+    type: golang
+    version: 1.0
+    gopath: ./chaincode
+    metapath: ./chaincode/src/github.com/digital-asset/daml-on-fabric/META-INF
+    entryPath: github.com/digital-asset/daml-on-fabric
+    queryWaitTime: 30000
+    invokeWaitTime: 60000
+explorer:
+  port: 8080
+ledgerId: fabric-ledger

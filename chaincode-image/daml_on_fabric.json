@@ -1,0 +1,1 @@
+{ "version": "2.0", "id": "daml_on_fabric", "type": "golang", "policy": "daml_on_fabric_endorsement.yaml" }
