@@ -599,7 +599,7 @@ public final class FabricContext {
         try {
 
             QueryByChaincodeRequest req = fabClient.newQueryProposalRequest();
-            req.setChaincodeName(ccName);
+            req.setChaincodeName(cc);
             req.setFcn(fcn);
             req.setArgs(args);
             Collection<ProposalResponse> responses = fabChannel.queryByChaincode(req);
