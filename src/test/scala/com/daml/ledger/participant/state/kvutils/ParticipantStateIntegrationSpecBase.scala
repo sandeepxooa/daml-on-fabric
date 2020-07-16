@@ -20,7 +20,8 @@ import com.daml.lf.archive.{Dar, DarReader}
 import com.daml.lf.crypto
 import com.daml.lf.data.Time.Timestamp
 import com.daml.lf.data.{ImmArray, Ref}
-import com.daml.lf.transaction.GenTransaction
+import com.daml.lf.transaction.test.TransactionBuilder
+import com.daml.lf.transaction.{Transaction => Tx}
 import com.daml.logging.LoggingContext
 import com.daml.logging.LoggingContext.newLoggingContext
 import com.daml.metrics.Metrics
@@ -322,7 +323,12 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
           _ <- ps.allocateParty(hint = Some(alice), None, newSubmissionId()).toScala
           (offset1, _) <- waitForNextUpdate(ps, None)
           _ <- ps
-            .submitTransaction(submitterInfo(rt, alice), transactionMeta(rt), emptyTransaction)
+            .submitTransaction(
+              submitterInfo(rt, alice),
+              transactionMeta(rt),
+              emptyTransaction,
+              dummyEstimatedTransactionCost
+            )
             .toScala
           (offset2, _) <- waitForNextUpdate(ps, Some(offset1))
         } yield {
@@ -341,7 +347,8 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
             .submitTransaction(
               submitterInfo(rt, alice, commandIds._1),
               transactionMeta(rt),
-              emptyTransaction
+              emptyTransaction,
+              dummyEstimatedTransactionCost
             )
             .toScala
           (offset2, update2) <- waitForNextUpdate(ps, Some(offset1))
@@ -350,7 +357,8 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
             .submitTransaction(
               submitterInfo(rt, alice, commandIds._1),
               transactionMeta(rt),
-              emptyTransaction
+              emptyTransaction,
+              dummyEstimatedTransactionCost
             )
             .toScala
           // ^ duplicate, gets dropped.
@@ -359,7 +367,8 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
             .submitTransaction(
               submitterInfo(rt, alice, commandIds._2),
               transactionMeta(rt),
-              emptyTransaction
+              emptyTransaction,
+              dummyEstimatedTransactionCost
             )
             .toScala
           (offset3, update3) <- waitForNextUpdate(ps, Some(offset2))
@@ -391,7 +400,8 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
             .submitTransaction(
               submitterInfo(rt, alice, "X1"),
               transactionMeta(rt),
-              emptyTransaction
+              emptyTransaction,
+              dummyEstimatedTransactionCost
             )
             .toScala
           (offset2, _) <- waitForNextUpdate(ps, Some(offset1))
@@ -399,7 +409,8 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
             .submitTransaction(
               submitterInfo(rt, alice, "X2"),
               transactionMeta(rt),
-              emptyTransaction
+              emptyTransaction,
+              dummyEstimatedTransactionCost
             )
             .toScala
           (offset3, update3) <- waitForNextUpdate(ps, Some(offset2))
@@ -432,7 +443,8 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
             .submitTransaction(
               submitterInfo(rt, unallocatedParty),
               transactionMeta(rt),
-              emptyTransaction
+              emptyTransaction,
+              dummyEstimatedTransactionCost
             )
             .toScala
           (offset2, update2) <- waitForNextUpdate(ps, Some(offset1))
@@ -458,7 +470,8 @@ abstract class ParticipantStateIntegrationSpecBase(implementationName: String)(
             .submitTransaction(
               submitterInfo(rt, party = newParty),
               transactionMeta(rt),
-              emptyTransaction
+              emptyTransaction,
+              dummyEstimatedTransactionCost
             )
             .toScala
           (offset4, update4) <- waitForNextUpdate(ps, Some(offset3))
@@ -699,7 +712,9 @@ object ParticipantStateIntegrationSpecBase {
   private val IdleTimeout: FiniteDuration = 5.seconds
 
   private val emptyTransaction: SubmittedTransaction =
-    GenTransaction(HashMap.empty, ImmArray.empty)
+    Tx.SubmittedTransaction(TransactionBuilder.Empty)
+
+  private val dummyEstimatedTransactionCost = 0L
 
   private val participantId: ParticipantId = Ref.ParticipantId.assertFromString("test-participant")
   private val sourceDescription = Some("provided by test")
@@ -727,10 +742,8 @@ object ParticipantStateIntegrationSpecBase {
       ledgerEffectiveTime = aLedgerEffectiveTime,
       workflowId = Some(Ref.LedgerString.assertFromString("tests")),
       submissionTime = aLedgerEffectiveTime.addMicros(-1000),
-      submissionSeed = Some(
-        crypto.Hash
-          .assertFromString("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
-      ),
+      submissionSeed = crypto.Hash
+        .assertFromString("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
       optUsedPackages = Some(Set.empty),
       optNodeSeeds = Some(ImmArray.empty),
       optByKeyNodes = Some(ImmArray.empty)

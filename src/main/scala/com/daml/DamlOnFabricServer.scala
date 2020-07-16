@@ -76,7 +76,7 @@ object DamlOnFabricServer extends App {
       implicit val materializer: Materializer = Materializer(actorSystem)
 
       // DAML Engine for transaction validation.
-      val sharedEngine = Engine()
+      val sharedEngine = new Engine(Engine.StableConfig)
 
       newLoggingContext { implicit logCtx =>
         for {
@@ -89,7 +89,8 @@ object DamlOnFabricServer extends App {
           _ <- {
             metricsRegistry.registerAll(new JvmMetricSet)
             val lfValueTranslationCache = LfValueTranslation.Cache.newInstrumentedInstance(
-              configuration = config.lfValueTranslationCache,
+              eventConfiguration = config.lfValueTranslationEventCacheConfiguration,
+              contractConfiguration = config.lfValueTranslationContractCacheConfiguration,
               metrics = metrics
             )
             for {
