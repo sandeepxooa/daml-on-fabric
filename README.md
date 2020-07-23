@@ -1,7 +1,6 @@
 
 [![CircleCI](https://circleci.com/gh/digital-asset/daml-on-fabric.svg?style=svg&circle-token=a00ee8cfc2d112608361c5698f62fdbf208aea30)](https://circleci.com/gh/digital-asset/daml-on-fabric) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/digital-asset/daml-on-fabric/blob/master/LICENSE)
 
-
 # DAML on Fabric
 
 Ledger implementation enabling DAML applications to run on Hyperledger Fabric 2.x
@@ -108,7 +107,6 @@ cd ~/daml-on-fabric/src/test/fixture/
 
 ```
 cd
-rm -rf quickstart
 daml new quickstart quickstart-java
 ```
 Created a new project in "quickstart" based on the template "quickstart-java".
