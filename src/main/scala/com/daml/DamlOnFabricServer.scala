@@ -11,22 +11,13 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.codahale.metrics.SharedMetricRegistries
 import com.daml.daml_lf_dev.DamlLf.Archive
-import com.daml.ledger.participant.state.v1.{
-  Configuration,
-  SubmissionId,
-  TimeModel,
-  WritePackagesService
-}
+import com.daml.ledger.participant.state.v1.{Configuration, SubmissionId, TimeModel, WritePackagesService}
 import com.daml.lf.archive.DarReader
 import com.daml.lf.engine.Engine
 import com.daml.logging.LoggingContext.newLoggingContext
 import com.daml.metrics.{JvmMetricSet, Metrics}
-import com.daml.platform.apiserver.{ApiServerConfig, StandaloneApiServer, TimedIndexService}
-import com.daml.platform.configuration.{
-  CommandConfiguration,
-  LedgerConfiguration,
-  PartyConfiguration
-}
+import com.daml.platform.apiserver.{ApiServerConfig, StandaloneApiServer}
+import com.daml.platform.configuration.{CommandConfiguration, LedgerConfiguration, PartyConfiguration}
 import com.daml.platform.indexer.{IndexerConfig, StandaloneIndexerServer}
 import com.daml.platform.store.dao.events.LfValueTranslation
 import com.daml.resources.akka.AkkaResourceOwner
@@ -59,6 +50,7 @@ object DamlOnFabricServer extends App {
   // Initialize Fabric connection
   // this will create the singleton instance and establish the connection
   val fabricConn = DAMLKVConnector.get(config.roleProvision, config.roleExplorer)
+  private val ledgerId = fabricConn.getLedgerId
 
   // If we only want to provision, exit right after
   if (!config.roleLedger && !config.roleTime && !config.roleExplorer) {
@@ -76,7 +68,7 @@ object DamlOnFabricServer extends App {
       implicit val materializer: Materializer = Materializer(actorSystem)
 
       // DAML Engine for transaction validation.
-      val sharedEngine = new Engine(Engine.StableConfig)
+      val sharedEngine = new Engine()
 
       newLoggingContext { implicit logCtx =>
         for {
@@ -116,6 +108,7 @@ object DamlOnFabricServer extends App {
                 lfValueTranslationCache = lfValueTranslationCache
               ).acquire() if config.roleLedger
               _ <- new StandaloneApiServer(
+                ledgerId = ledgerId,
                 config = ApiServerConfig(
                   participantId = config.participantId,
                   archiveFiles = config.archiveFiles.map(_.toFile),
@@ -144,17 +137,11 @@ object DamlOnFabricServer extends App {
                   initialConfigurationSubmitDelay = Duration.ofSeconds(5),
                   configurationLoadTimeout = Duration.ofSeconds(30)
                 ),
-                readService = ledger,
-                writeService = ledger,
+                optWriteService = Some(ledger),
                 authService = authService,
-                transformIndexService = service =>
-                  new TimedIndexService(
-                    service,
-                    metrics
-                  ),
                 metrics = metrics,
                 engine = sharedEngine,
-                lfValueTranslationCache = lfValueTranslationCache
+                lfValueTranslationCache = lfValueTranslationCache,
               ).acquire() if config.roleLedger
             } yield ()
           }

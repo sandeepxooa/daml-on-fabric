@@ -18,7 +18,7 @@ import com.daml.ledger.api.health.{HealthStatus, Healthy}
 import com.daml.ledger.participant.state.kvutils.DamlKvutils._
 import com.daml.ledger.participant.state.kvutils.{
   Envelope,
-  KVOffset,
+  OffsetBuilder,
   KeyValueCommitting,
   KeyValueConsumption,
   KeyValueSubmission,
@@ -353,7 +353,7 @@ class FabricParticipantState(
     dispatcher
       .startingAt(
         beginAfter
-          .map(KVOffset.highestIndex(_).toInt)
+          .map(OffsetBuilder.highestIndex(_).toInt)
           .getOrElse(StartIndex), // this get index from commitHeight of fabric network
         //            .getOrElse(StartIndex),
         //          check if we need this for recovery cases, also deal with it being larger than 0
@@ -365,11 +365,11 @@ class FabricParticipantState(
       .collect {
         case (off, updates) =>
           val updateOffset: (Offset, Int) => Offset =
-            if (updates.size > 1) KVOffset.setMiddleIndex else (offset, _) => offset
+            if (updates.size > 1) OffsetBuilder.setMiddleIndex else (offset, _) => offset
           updates.zipWithIndex.map {
             //TODO BH: index is always 0 : expected?
             case (update, index) =>
-              updateOffset(KVOffset.fromLong(off.toLong), index.toInt) -> update
+              updateOffset(OffsetBuilder.fromLong(off.toLong), index.toInt) -> update
           }
       }
       .mapConcat(identity)
