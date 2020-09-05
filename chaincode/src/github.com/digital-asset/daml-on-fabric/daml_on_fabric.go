@@ -10,10 +10,9 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
-	"github.com/op/go-logging"
 )
 
-var logger = logging.MustGetLogger("daml_on_fabric")
+var logger = shim.NewLogger("daml_on_fabric")
 
 const (
 	_prefixState     = "DState:"
